@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taller Bullying - Sistema de Niveles</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Comic Sans MS', 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #ffe6f2 0%, #e6f7ff 100%);
+    color: #2c3e50;
+    line-height: 1.7;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, #ff6b9d, #ffa07a);
+    color: #fff;
+    padding: 30px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.9em; margin-bottom: 8px; }
+  header p { font-size: 1em; opacity: 0.95; }
+
+  .progreso {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    background: #f9fbff;
+    flex-wrap: wrap;
+  }
+  .nivel-dot {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #ddd;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    border: 3px solid #ccc;
+    transition: all 0.3s;
+  }
+  .nivel-dot.activo {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #4834d4;
+    transform: scale(1.15);
+    box-shadow: 0 5px 15px rgba(108,92,231,0.4);
+  }
+  .nivel-dot.completado {
+    background: #28a745;
+    color: #fff;
+    border-color: #1e7e34;
+  }
+
+  main { padding: 30px; }
+
+  .nivel {
+    display: none;
+    animation: fadeIn 0.5s;
+  }
+  .nivel.activo { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .nivel h2 {
+    color: #d63384;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 3px dashed #ff6b9d;
+  }
+  .nivel h3 {
+    color: #6c5ce7;
+    margin: 15px 0 8px;
+    font-size: 1.1em;
+  }
+  .nivel ul, .nivel ol { margin: 10px 0 10px 25px; }
+  .nivel li { margin-bottom: 8px; }
+
+  .highlight {
+    background: #fff3cd;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border-left: 4px solid #ffc107;
+    margin: 12px 0;
+  }
+  .tip {
+    background: #d1ecf1;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border-left: 4px solid #17a2b8;
+    margin: 12px 0;
+  }
+  .warning {
+    background: #f8d7da;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border-left: 4px solid #dc3545;
+    margin: 12px 0;
+  }
+  .success {
+    background: #d4edda;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border-left: 4px solid #28a745;
+    margin: 12px 0;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fff; border-radius: 10px; overflow: hidden; }
+  th { background: #ff6b9d; color: #fff; padding: 12px; text-align: left; }
+  td { padding: 12px; border-bottom: 1px solid #eee; }
+  tr:nth-child(even) { background: #fdf2f8; }
+
+  .situacion-card {
+    background: #fff;
+    border: 2px dashed #6c5ce7;
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin: 8px 0;
+  }
+
+  .semaforo {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .semaforo-item {
+    flex: 1;
+    min-width: 150px;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+  }
+  .verde { background: #28a745; }
+  .amarillo { background: #ffc107; color: #333; }
+  .rojo { background: #dc3545; }
+
+  .pasos { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+  .paso {
+    flex: 1;
+    min-width: 160px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+    padding: 18px;
+    border-radius: 15px;
+    text-align: center;
+  }
+  .paso .numero { font-size: 2em; font-weight: bold; display: block; }
+  .paso .titulo { font-size: 1.1em; font-weight: bold; margin: 5px 0; }
+
+  .zona-codigo {
+    background: linear-gradient(135deg, #2c3e50, #4a6572);
+    color: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 25px;
+    text-align: center;
+  }
+  .zona-codigo h3 {
+    color: #ffc107;
+    font-size: 1.2em;
+    margin-bottom: 15px;
+  }
+  .zona-codigo input {
+    padding: 14px 20px;
+    font-size: 1.5em;
+    text-align: center;
+    letter-spacing: 8px;
+    border: 3px solid #ffc107;
+    border-radius: 10px;
+    width: 220px;
+    font-weight: bold;
+    font-family: monospace;
+  }
+  .zona-codigo button {
+    display: block;
+    margin: 15px auto 0;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 12px 35px;
+    font-size: 1.1em;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .zona-codigo button:hover {
+    background: #1e7e34;
+    transform: translateY(-2px);
+  }
+  .mensaje-error {
+    color: #ff6b6b;
+    font-weight: bold;
+    margin-top: 10px;
+    min-height: 24px;
+  }
+  .mensaje-ok {
+    color: #6bff8f;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .compromiso-box {
+    background: linear-gradient(135deg, #fff9c4, #ffe082);
+    padding: 20px;
+    border-radius: 15px;
+    border: 3px solid #ffc107;
+    margin: 20px 0;
+  }
+  .compromiso-box textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ffc107;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1em;
+    min-height: 80px;
+    resize: vertical;
+    margin-top: 10px;
+  }
+
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li {
+    padding: 10px 15px;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 10px;
+  }
+  .checklist li::before { content: "☐"; font-size: 1.3em; color: #6c5ce7; }
+
+  .btn-final {
+    display: block;
+    margin: 20px auto;
+    background: #ff6b9d;
+    color: #fff;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+  }
+
+  #pantalla-final {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  #pantalla-final.activo { display: block; }
+  #pantalla-final .trofeo { font-size: 5em; margin-bottom: 20px; }
+
+  footer {
+    background: #2c3e50;
+    color: #fff;
+    text-align: center;
+    padding: 15px;
+    font-size: 0.85em;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.4em; }
+    main { padding: 15px; }
+    .zona-codigo input { width: 180px; font-size: 1.2em; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🌈 Taller: Violencia y Bullying 🌈</h1>
+    <p>Para estudiantes de Tercero de Primaria</p>
+  </header>
+
+  <!-- BARRA DE PROGRESO -->
+  <div class="progreso" id="progreso">
+    <div class="nivel-dot activo" data-nivel="1">1</div>
+    <div class="nivel-dot" data-nivel="2">2</div>
+    <div class="nivel-dot" data-nivel="3">3</div>
+    <div class="nivel-dot" data-nivel="4">4</div>
+    <div class="nivel-dot" data-nivel="5">5</div>
+    <div class="nivel-dot" data-nivel="6">6</div>
+  </div>
+
+  <main>
+
+    <!-- ============ NIVEL 1 ============ -->
+    <div class="nivel activo" id="nivel-1">
+      <h2>1️⃣ Bienvenida y Rompehielos</h2>
+      <h3>🎈 "El juego de los abrazos y los gestos amables"</h3>
+      <ul>
+        <li>Los niños caminan por el salón</li>
+        <li>A la señal del docente, deben decir algo amable a un compañero o dar un abrazo (con consentimiento)</li>
+        <li>Reflexión: ¿Cómo nos sentimos cuando alguien es amable con nosotros?</li>
+      </ul>
+      <div class="tip">
+        <strong>🔄 Alternativa:</strong> Pasar una pelota y decir cómo se siente cada uno hoy.
+      </div>
+      <div class="highlight">
+        <strong>✅ Para avanzar:</strong> El estudiante debe participar en la dinámica y decir una palabra amable a un compañero. Luego el docente le entrega el <strong>código del Nivel 1</strong>.
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 1</h3>
+        <input type="password" id="input-1" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(1)">Desbloquear Nivel 2 ➡️</button>
+        <div class="mensaje-error" id="msg-1"></div>
+      </div>
+    </div>
+
+    <!-- ============ NIVEL 2 ============ -->
+    <div class="nivel" id="nivel-2">
+      <h2>2️⃣ ¿Qué es el Bullying?</h2>
+      <p><strong>Definición para niños:</strong> "Cuando alguien lastima a otra persona una y otra vez, y esa persona se siente mal y no puede defenderse solita".</p>
+      <h3>📚 Tipos de bullying</h3>
+      <table>
+        <thead><tr><th>Tipo</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td>💬 Verbal</td><td>Poner apodos, burlarse, insultar</td></tr>
+          <tr><td>✋ Físico</td><td>Empujar, pegar, quitar cosas</td></tr>
+          <tr><td>👥 Social</td><td>Excluir, no dejar jugar, contar secretos</td></tr>
+          <tr><td>📱 Cibernético</td><td>Mensajes feos en juegos o chats</td></tr>
+        </tbody>
+      </table>
+      <div class="tip">
+        <strong>💬 Pregunta:</strong> ¿Alguna vez han visto algo así en la escuela? El estudiante debe dar al menos <strong>1 ejemplo</strong>.
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 2</h3>
+        <input type="password" id="input-2" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(2)">Desbloquear Nivel 3 ➡️</button>
+        <div class="mensaje-error" id="msg-2"></div>
+      </div>
+    </div>
+
+    <!-- ============ NIVEL 3 ============ -->
+    <div class="nivel" id="nivel-3">
+      <h2>3️⃣ Semáforo del Respeto</h2>
+      <div class="semaforo">
+        <div class="semaforo-item verde">🟢 VERDE<br>Es respeto</div>
+        <div class="semaforo-item amarillo">🟡 AMARILLO<br>Hay que hablar</div>
+        <div class="semaforo-item rojo">🔴 ROJO<br>Es bullying</div>
+      </div>
+
+      <h3>🎲 Situaciones:</h3>
+      <div class="situacion-card">1. Invitar a un compañero nuevo a jugar</div>
+      <div class="situacion-card">2. Ponerle "gordo" a un compañero todos los días</div>
+      <div class="situacion-card">3. Quitarle la lonchera a alguien</div>
+      <div class="situacion-card">4. Decir "buenos días" a la maestra</div>
+      <div class="situacion-card">5. No dejar que alguien participe porque "es raro"</div>
+      <div class="situacion-card">6. Ayudar a alguien que se cayó</div>
+      <div class="situacion-card">7. Burlarse de las gafas de un compañero</div>
+      <div class="situacion-card">8. Compartir el recreo con quien está solo</div>
+
+      <div class="highlight">
+        <strong>✅ Para avanzar:</strong> El estudiante debe clasificar <strong>correctamente al menos 6 de las 8 situaciones</strong> usando las tarjetas de colores (el docente verifica).
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 3</h3>
+        <input type="password" id="input-3" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(3)">Desbloquear Nivel 4 ➡️</button>
+        <div class="mensaje-error" id="msg-3"></div>
+      </div>
+    </div>
+
+    <!-- ============ NIVEL 4 ============ -->
+    <div class="nivel" id="nivel-4">
+      <h2>4️⃣ Empatía: "Los zapatos del otro"</h2>
+      <h3>💞 Actividad en parejas:</h3>
+      <ul>
+        <li>Cada niño cuenta algo que le hace sentir triste o feliz</li>
+        <li>El compañero responde: <em>"Si yo fuera tú, me sentiría..."</em></li>
+        <li>Luego intercambian roles</li>
+      </ul>
+      <div class="success">
+        <strong>✍️ Cierre:</strong> Escribir o dibujar en un corazón de papel: <em>"Yo puedo hacer que mi salón sea mejor si..."</em>
+      </div>
+      <div class="highlight">
+        <strong>✅ Para avanzar:</strong> El estudiante debe completar la frase de empatía con su compañero y mostrar su corazón dibujado al docente.
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 4</h3>
+        <input type="password" id="input-4" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(4)">Desbloquear Nivel 5 ➡️</button>
+        <div class="mensaje-error" id="msg-4"></div>
+      </div>
+    </div>
+
+    <!-- ============ NIVEL 5 ============ -->
+    <div class="nivel" id="nivel-5">
+      <h2>5️⃣ Los 3 Pasos del Valiente</h2>
+      <div class="pasos">
+        <div class="paso"><span class="numero">1</span><span class="titulo">PARAR</span>Decir: "No me gusta lo que haces"</div>
+        <div class="paso"><span class="numero">2</span><span class="titulo">ALEJARSE</span>Ir a un lugar seguro</div>
+        <div class="paso"><span class="numero">3</span><span class="titulo">CONTAR</span>Hablar con un adulto de confianza</div>
+      </div>
+      <div class="highlight">
+        <strong>🎵 Consigna:</strong> "Si me molestan, yo lo cuento, no me callo, pido ayuda y soy valiente"
+      </div>
+      <div class="warning">
+        <strong>⚠️ Importante:</strong> Pedir ayuda NO es ser chismoso, es ser valiente.
+      </div>
+      <div class="highlight">
+        <strong>✅ Para avanzar:</strong> El estudiante debe <strong>repetir de memoria los 3 pasos</strong> y decir la consigna frente al docente.
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 5</h3>
+        <input type="password" id="input-5" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(5)">Desbloquear Nivel 6 ➡️</button>
+        <div class="mensaje-error" id="msg-5"></div>
+      </div>
+    </div>
+
+    <!-- ============ NIVEL 6 ============ -->
+    <div class="nivel" id="nivel-6">
+      <h2>6️⃣ Compromiso del Salón</h2>
+      <h3>🌳 "El árbol del buen trato"</h3>
+      <ul>
+        <li>Dibujar un árbol grande en papel bond</li>
+        <li>Cada niño escribe un compromiso en una hoja</li>
+        <li>Pegar las hojas en el árbol y colgarlo en el salón</li>
+      </ul>
+
+      <div class="compromiso-box">
+        <strong>✏️ Mi compromiso personal:</strong>
+        <textarea id="compromiso" placeholder="Yo prometo..."></textarea>
+      </div>
+
+      <div class="success">
+        <strong>🏅 Entrega:</strong> Distintivo "Guardián del Buen Trato"
+      </div>
+
+      <div class="zona-codigo">
+        <h3>🔐 Ingresa el código del Nivel 6 (código final)</h3>
+        <input type="password" id="input-6" maxlength="4" inputmode="numeric" placeholder="____">
+        <button onclick="verificar(6)">🏆 ¡Finalizar Taller!</button>
+        <div class="mensaje-error" id="msg-6"></div>
+      </div>
+    </div>
+
+    <!-- ============ PANTALLA FINAL ============ -->
+    <div id="pantalla-final">
+      <div class="trofeo">🏆</div>
+      <h2 style="color:#28a745; border:none;">¡FELICIDADES!</h2>
+      <p style="font-size:1.2em; margin:15px 0;">
+        Has completado todos los niveles del taller.<br>
+        Ahora eres un <strong>Guardián del Buen Trato</strong> 🛡️
+      </p>
+      <div class="success" style="text-align:left;">
+        <strong>🌟 Recuerda siempre:</strong>
+        <ul>
+          <li>Trata a todos con respeto</li>
+          <li>Si ves bullying, cuenta a un adulto</li>
+          <li>Invita a jugar a quien esté solo</li>
+          <li>Pide ayuda si te molestan</li>
+        </ul>
+      </div>
+      <button class="btn-final" onclick="location.reload()">🔄 Reiniciar Taller</button>
+    </div>
+
+  </main>
+
+  <footer>
+    💖 Taller Educativo: Violencia y Bullying | Tercero de Primaria 💖
+  </footer>
+</div>
+
+<script>
+  // ============================================
+  // CÓDIGOS DE SEGURIDAD POR NIVEL
+  // ⚠️ CAMBIA ESTOS CÓDIGOS POR LOS QUE TÚ QUIERAS
+  // ============================================
+  const CODIGOS = {
+    1: "4821",  // Nivel 1 → desbloquea Nivel 2
+    2: "7356",  // Nivel 2 → desbloquea Nivel 3
+    3: "2947",  // Nivel 3 → desbloquea Nivel 4
+    4: "6183",  // Nivel 4 → desbloquea Nivel 5
+    5: "5074",  // Nivel 5 → desbloquea Nivel 6
+    6: "9325"   // Nivel 6 → finaliza el taller
+  };
+
+  let nivelActual = 1;
+
+  function verificar(nivel) {
+    const input = document.getElementById('input-' + nivel);
+    const msg = document.getElementById('msg-' + nivel);
+    const codigoIngresado = input.value.trim();
+
+    if (codigoIngresado === CODIGOS[nivel]) {
+      // Código correcto
+      msg.className = 'mensaje-ok';
+      msg.textContent = '✅ ¡Código correcto! Avanzando...';
+
+      // Marcar nivel como completado
+      document.querySelector(`.nivel-dot[data-nivel="${nivel}"]`).classList.remove('activo');
+      document.querySelector(`.nivel-dot[data-nivel="${nivel}"]`).classList.add('completado');
+
+      setTimeout(() => {
+        // Ocultar nivel actual
+        document.getElementById('nivel-' + nivel).classList.remove('activo');
+
+        if (nivel === 6) {
+          // Mostrar pantalla final
+          document.getElementById('pantalla-final').classList.add('activo');
+        } else {
+          // Mostrar siguiente nivel
+          const siguiente = nivel + 1;
+          document.getElementById('nivel-' + siguiente).classList.add('activo');
+          document.querySelector(`.nivel-dot[data-nivel="${siguiente}"]`).classList.add('activo');
+          nivelActual = siguiente;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 800);
+
+    } else {
+      // Código incorrecto
+      msg.className = 'mensaje-error';
+      msg.textContent = '❌ Código incorrecto. Pídele el código a tu maestro/a.';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  // Permitir Enter para enviar
+  document.querySelectorAll('.zona-codigo input').forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const nivel = input.id.split('-')[1];
+        verificar(parseInt(nivel));
+      }
+    });
+    // Solo números
+    input.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '');
+    });
+  });
+
+  // Guardar progreso en localStorage (opcional)
+  function guardarProgreso() {
+    localStorage.setItem('taller_bullying_nivel', nivelActual);
+  }
+</script>
+</body>
+</html>
